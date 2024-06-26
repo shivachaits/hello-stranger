@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Socket.IO Chat</title>
+  <style>
+    body {
+      margin: 0;
+      padding-bottom: 3rem;
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(to right, #ffffff, #6dd5fa, #2980b9);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    #header {
+      background: #007bff;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    #messages {
+      list-style-type: none;
+      margin: 0;
+      padding: 1rem;
+      flex-grow: 1;
+      overflow-y: auto;
+      background: #f7f7f7;
+    }
+    #messages > li {
+      padding: 0.5rem 1rem;
+      margin-bottom: 0.5rem;
+      background: #fff;
+      border-radius: 0.25rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    #messages > li:nth-child(odd) {
+      background: #eef6fc;
+    }
+    #form {
+      display: flex;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 0.5rem;
+      background: rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(10px);
+    }
+    #input {
+      flex-grow: 1;
+      padding: 0.5rem;
+      border: none;
+      border-radius: 2rem;
+      margin-right: 0.5rem;
+    }
+    #input:focus {
+      outline: none;
+    }
+    #form > button {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 2rem;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    #form > button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div id="header">
+    <h1>Hello stranger</h1>
+    <p id="online-users">Users online: 0</p>
+  </div>
+  <ul id="messages"></ul>
+  <form id="form" action="">
+    <input id="input" autocomplete="off" placeholder="Type your message..." /><button>Send</button>
+  </form>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    var socket = io();
+    var messages = document.getElementById('messages');
+    var form = document.getElementById('form');
+    var input = document.getElementById('input');
+    var onlineUsersElement = document.getElementById('online-users');
+    var username = localStorage.getItem('username');
+    
+    if (!username) {
+      window.location.href = '/';
+    }
+    
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (input.value) {
+        socket.emit('chat message', { username: username, message: input.value });
+        input.value = '';
+      }
+    });
+
+    socket.on('chat message', function(msg) {
+      var item = document.createElement('li');
+      item.textContent = msg.username + ': ' + msg.message;
+      messages.appendChild(item);
+      window.scrollTo(0, document.body.scrollHeight);
+    });
+
+    socket.on('users online', function(count) {
+      onlineUsersElement.textContent = `Users online: ${count}`;
+    });
+  </script>
+</body>
+</html>
